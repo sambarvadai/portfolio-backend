@@ -32,4 +32,7 @@ app.get('/api/timezone',async(req,res)=>{
         res.status(500).json({error:"Server or TimezoneDB API Error"});
     }
     });
+    app.get('/ping', (req, res) => {
+        res.send('pong');
+      });
     app.listen(port,()=>{console.log("Server started successfully on port",port)});
