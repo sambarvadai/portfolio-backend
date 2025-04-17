@@ -3,6 +3,7 @@ const exp = require('express');
 require('dotenv').config();
 
 const app = exp();
+app.disable('etag');
 const port = process.env.PORT || 3000;
 
 //Define route for OpenCage
