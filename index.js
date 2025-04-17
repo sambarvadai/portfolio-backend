@@ -38,4 +38,39 @@ app.get('/api/timezone',async(req,res)=>{
     app.get('/ping', (req, res) => {
         res.send('pong');
       });
+    
+      app.get('/api/spotify/now-playing', async (req, res) => {
+        const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Basic ' + Buffer.from(
+              `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+            ).toString('base64'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: process.env.SPOTIFY_REFRESH_TOKEN,
+          })
+        }); // ← closes fetch()
+      
+        const tokenData = await tokenResponse.json();
+        const accessToken = tokenData.access_token;
+      
+        const nowPlayingResponse = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          }
+        });
+      
+        if (nowPlayingResponse.status === 204) {
+          return res.status(204).json({ message: "No song is currently playing" });
+        }
+      
+        const data = await nowPlayingResponse.json();
+        const songName = data?.item?.name;
+        res.json({ song: songName });
+      
+      }); 
+      
     app.listen(port,()=>{console.log("Server started successfully on port",port)});
