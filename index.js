@@ -1,11 +1,14 @@
 const exp = require('express');
+const cors = require('cors');
 //const fetch = require('node-fetch');
 require('dotenv').config();
 
 const app = exp();
 app.disable('etag');
 const port = process.env.PORT || 3000;
-
+app.use(cors({
+  origin:"*"
+}));
 //Define route for OpenCage
 app.get('/api/geocode',async (req,res)=>{
     const {q} = req.query;
