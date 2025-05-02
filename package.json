@@ -19,9 +19,12 @@
   },
   "homepage": "https://github.com/sambarvadai/portfolio-backend#readme",
   "dependencies": {
+    "active-win-log": "^1.0.3",
     "cors": "^2.8.5",
+    "dayjs": "^1.11.13",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "get-windows": "^9.2.0",
     "open": "^8.4.2"
   }
 }

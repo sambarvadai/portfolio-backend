@@ -1,5 +1,6 @@
 const exp = require('express');
 const cors = require('cors');
+const dayjs = require('dayjs');
 //const fetch = require('node-fetch');
 require('dotenv').config();
 
@@ -54,8 +55,7 @@ app.get('/api/timezone',async(req,res)=>{
             grant_type: 'refresh_token',
             refresh_token: process.env.SPOTIFY_REFRESH_TOKEN,
           })
-        }); // ← closes fetch()
-      
+        }); 
         const tokenData = await tokenResponse.json();
         const accessToken = tokenData.access_token;
       
@@ -74,5 +74,42 @@ app.get('/api/timezone',async(req,res)=>{
         res.json({ song: songName });
       
       }); 
-      
+    app.get('/api/spotify/last-activity',async(req,res)=>{
+      const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic ' + Buffer.from(
+            `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+          ).toString('base64'),
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: process.env.SPOTIFY_REFRESH_TOKEN,
+        })
+      }); 
+      const tokenData = await tokenResponse.json();
+      const accessToken = tokenData.access_token;
+      try{
+        const response = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1',{
+          headers:{
+            Authorization: `Bearer ${accessToken}`,
+          }
+        });
+        const recentData = await response.json();
+        console.log(recentData);
+        const lastPlayed = recentData.items[0].played_at;
+        if(!lastPlayed){
+          return res.status(204).json({message:"No recent activity"});
+        }
+        const diffDays = dayjs().diff(dayjs(lastPlayed),"day");
+        const diffHours = dayjs().diff(dayjs(lastPlayed),"hour")%24;
+        const playedAge = diffDays > 0 ? `${diffDays}d ${diffHours} ago` : `${diffHours}h ago`;
+        return res.json({ lastPlayed: playedAge });
+    }
+    catch(error){
+      console.error("Error with API",error);
+      return res.status(500).json({error:"Check API or server"});
+    }
+  });
     app.listen(port,()=>{console.log("Server started successfully on port",port)});
